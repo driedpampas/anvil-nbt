@@ -8,12 +8,18 @@ use std::fs::File;
 use std::io::{Read, Result};
 use std::path::Path;
 
+/// A memory-mapped Anvil region file.
+///
+/// This struct provides efficient access to chunks within a `.mca` file.
 pub struct Region {
     mmap: Mmap,
     header: RegionHeader,
 }
 
 impl Region {
+    /// Opens an Anvil region file and memory-maps it.
+    ///
+    /// The headers are parsed immediately to allow quick lookups.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
         let mmap = unsafe { Mmap::map(&file)? };
@@ -61,6 +67,7 @@ impl Region {
         })
     }
 
+    /// Retrieves the raw decompressed NBT data for a chunk at the given coordinates.
     pub fn get_chunk_data(&self, x: i32, z: i32) -> Result<Option<Vec<u8>>> {
         let rel_x = (x % 32 + 32) % 32;
         let rel_z = (z % 32 + 32) % 32;
@@ -105,6 +112,7 @@ impl Region {
         Ok(Some(decoded))
     }
 
+    /// Parses the NBT data for a chunk at the given coordinates.
     pub fn get_chunk_nbt(&self, x: i32, z: i32) -> Result<Option<(String, NbtTag)>> {
         if let Some(data) = self.get_chunk_data(x, z)? {
             let mut input = &data[..];

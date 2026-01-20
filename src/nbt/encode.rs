@@ -3,6 +3,7 @@ use crate::nbt::mutf8::encode_mutf8;
 use byteorder::{BigEndian, WriteBytesExt};
 use std::io::{Result, Write};
 
+/// Writes a length-prefixed Modified UTF-8 string to the writer.
 pub fn write_nbt_string<W: Write>(writer: &mut W, s: &str) -> Result<()> {
     let bytes = encode_mutf8(s);
     writer.write_u16::<BigEndian>(bytes.len() as u16)?;
@@ -10,6 +11,9 @@ pub fn write_nbt_string<W: Write>(writer: &mut W, s: &str) -> Result<()> {
     Ok(())
 }
 
+/// Writes the payload of an NBT tag to the writer.
+///
+/// This does not include the type ID or the name of the tag.
 pub fn write_tag_payload<W: Write>(writer: &mut W, tag: &NbtTag) -> Result<()> {
     match tag {
         NbtTag::End => Ok(()),
@@ -26,8 +30,7 @@ pub fn write_tag_payload<W: Write>(writer: &mut W, tag: &NbtTag) -> Result<()> {
         NbtTag::String(v) => write_nbt_string(writer, v),
         NbtTag::List(v) => {
             if v.is_empty() {
-                writer.write_u8(0)?; // Tag_End as element type? Usually Tag_End is used for empty list?
-                // Actually Minecraft specifications say if list is empty, type is Tag_End and length is 0.
+                writer.write_u8(0)?; // Tag_End as element type
                 writer.write_i32::<BigEndian>(0)?;
             } else {
                 let element_type = v[0].get_type_id();
@@ -65,6 +68,9 @@ pub fn write_tag_payload<W: Write>(writer: &mut W, tag: &NbtTag) -> Result<()> {
     }
 }
 
+/// Writes a named tag (type ID + name + payload) to the writer.
+///
+/// This is the standard way to encode a root NBT tag for storage.
 pub fn write_named_tag<W: Write>(writer: &mut W, name: &str, tag: &NbtTag) -> Result<()> {
     writer.write_u8(tag.get_type_id())?;
     write_nbt_string(writer, name)?;

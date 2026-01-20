@@ -12,6 +12,11 @@ impl fmt::Display for Mutf8Error {
 
 impl Error for Mutf8Error {}
 
+/// Decodes a Modified UTF-8 (MUTF-8) byte slice into a standard Rust `String`.
+///
+/// MUTF-8 is used by Minecraft (and Java) to represent strings. It differs from standard UTF-8
+/// by encoding null characters as two bytes (`0xC0 0x80`) and encoding supplementary characters
+/// as surrogate pairs using 6-byte sequences.
 pub fn decode_mutf8(data: &[u8]) -> Result<String, Mutf8Error> {
     let mut utf16 = Vec::new();
     let mut i = 0;
@@ -49,6 +54,7 @@ pub fn decode_mutf8(data: &[u8]) -> Result<String, Mutf8Error> {
     String::from_utf16(&utf16).map_err(|e| Mutf8Error(e.to_string()))
 }
 
+/// Encodes a standard Rust string into Modified UTF-8 (MUTF-8) bytes.
 pub fn encode_mutf8(s: &str) -> Vec<u8> {
     let mut result = Vec::new();
     for c in s.encode_utf16() {

@@ -77,7 +77,8 @@ fn test_anvil_round_trip() {
     // 1. Write
     {
         let file = std::fs::File::create(&mca_path).unwrap();
-        RegionWriter::write_region(file, &chunks).unwrap();
+        let mut writer = RegionWriter::new(file);
+        writer.write_all_chunks(&chunks).unwrap();
     }
 
     // 2. Read

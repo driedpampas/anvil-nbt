@@ -4,7 +4,7 @@ use mcse_nbt::anvil::access::Region;
 use mcse_nbt::nbt::parse::parse_named_tag;
 use nom::error::Error;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -38,8 +38,21 @@ enum Commands {
     },
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
+    if let Err(e) = run() {
+        let msg = format!("{:?}", e).to_lowercase();
+        if msg.contains("broken pipe") || msg.contains("os error 32") {
+            std::process::exit(0);
+        }
+        eprintln!("Error: {:?}", e);
+        std::process::exit(1);
+    }
+}
+
+fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
+    let stdout = std::io::stdout();
+    let mut handle = stdout.lock();
 
     match cli.command {
         Commands::Nbt { path, uncompressed } => {
@@ -55,24 +68,29 @@ fn main() -> anyhow::Result<()> {
             let mut input = &data[..];
             let (name, tag) = parse_named_tag::<Error<&[u8]>>(&mut input)
                 .map_err(|e| anyhow::anyhow!("Failed to parse NBT: {:?}", e))?;
-            println!("Root tag name: '{}'", name);
-            println!("{:#?}", tag);
+            writeln!(handle, "Root tag name: '{}'", name)?;
+            writeln!(handle, "{:#?}", tag)?;
         }
         Commands::Anvil { path, x, z } => {
             let region = Region::open(path)?;
             if let (Some(x), Some(z)) = (x, z) {
                 if let Some((name, tag)) = region.get_chunk_nbt(x, z)? {
-                    println!("Chunk ({}, {}) root tag name: '{}'", x, z, name);
-                    println!("{:#?}", tag);
+                    writeln!(handle, "Chunk ({}, {}) root tag name: '{}'", x, z, name)?;
+                    writeln!(handle, "{:#?}", tag)?;
                 } else {
-                    println!("Chunk ({}, {}) is not present in this region.", x, z);
+                    writeln!(
+                        handle,
+                        "Chunk ({}, {}) is not present in this region.",
+                        x, z
+                    )?;
                 }
             } else {
-                println!("Anvil region file loaded. Use -x and -z to inspect a specific chunk.");
-                // We could list non-empty chunks here
+                writeln!(
+                    handle,
+                    "Anvil region file loaded. Use -x and -z to inspect a specific chunk."
+                )?;
             }
         }
     }
-
     Ok(())
 }

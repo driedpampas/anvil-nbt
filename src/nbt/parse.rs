@@ -7,6 +7,9 @@ use nom::{
     number::complete::{be_f32, be_f64, be_i8, be_i16, be_i32, be_i64, be_u8, be_u16},
 };
 
+/// Parses a length-prefixed Modified UTF-8 string from the input.
+///
+/// This is the standard string format used in NBT files.
 pub fn parse_nbt_string<'a, E>(input: &mut &'a [u8]) -> Result<String, E>
 where
     E: ParseError<&'a [u8]>,
@@ -25,6 +28,9 @@ fn unwrap_err<E>(e: nom::Err<E>) -> E {
     }
 }
 
+/// Parses the payload of an NBT tag based on its type ID.
+///
+/// This function is used recursively to parse lists and compounds.
 pub fn parse_tag_payload<'a, E>(input: &mut &'a [u8], type_id: u8) -> Result<NbtTag, E>
 where
     E: ParseError<&'a [u8]>,
@@ -120,6 +126,9 @@ where
     }
 }
 
+/// Parses a named tag (type ID + name + payload) from the input.
+///
+/// This is typically the entry point for parsing an uncompressed NBT file.
 pub fn parse_named_tag<'a, E>(input: &mut &'a [u8]) -> Result<(String, NbtTag), E>
 where
     E: ParseError<&'a [u8]>,

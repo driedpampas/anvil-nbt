@@ -2,6 +2,9 @@
 name = "mcse-nbt"
 version = "0.1.0"
 edition = "2024"
+description = "A production-grade Rust library for parsing and encoding Minecraft's NBT and Anvil (.mca) formats."
+license = "MIT"
+authors = ["Antigravity"]
 
 [dependencies]
 nom = "8.0.0"
