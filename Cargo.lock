@@ -59,6 +59,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "anvil-nbt"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "clap",
+ "flate2",
+ "indexmap",
+ "memmap2",
+ "nom",
+ "thiserror",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -180,20 +194,6 @@ name = "libc"
 version = "0.2.180"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bcc35a38544a891a5f7c865aca548a982ccb3b8650a5b06d0fd33a10283c56fc"
-
-[[package]]
-name = "mcse-nbt"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "byteorder",
- "clap",
- "flate2",
- "indexmap",
- "memmap2",
- "nom",
- "thiserror",
-]
 
 [[package]]
 name = "memchr"

@@ -1,10 +1,10 @@
 // Copyright 2026 driedpampas@proton.me
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use anvil_nbt::anvil::access::Region;
+use anvil_nbt::nbt::parse::parse_named_tag;
 use clap::{Parser, Subcommand};
 use flate2::read::GzDecoder;
-use mcse_nbt::anvil::access::Region;
-use mcse_nbt::nbt::parse::parse_named_tag;
 use nom::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};

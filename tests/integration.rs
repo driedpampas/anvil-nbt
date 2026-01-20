@@ -1,13 +1,13 @@
 // Copyright 2026 driedpampas@proton.me
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use anvil_nbt::nbt::NbtTag;
+use anvil_nbt::nbt::encode::write_named_tag;
+use anvil_nbt::nbt::parse::parse_named_tag;
 use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use indexmap::IndexMap;
-use mcse_nbt::nbt::NbtTag;
-use mcse_nbt::nbt::encode::write_named_tag;
-use mcse_nbt::nbt::parse::parse_named_tag;
 use nom::error::Error;
 use std::io::{Cursor, Read, Write};
 
@@ -66,8 +66,8 @@ fn test_complex_nbt_round_trip_gzip() {
 
 #[test]
 fn test_anvil_round_trip() {
-    use mcse_nbt::anvil::access::Region;
-    use mcse_nbt::anvil::encode::RegionWriter;
+    use anvil_nbt::anvil::access::Region;
+    use anvil_nbt::anvil::encode::RegionWriter;
 
     let temp_dir = std::env::temp_dir();
     let mca_path = temp_dir.join("test.mca");

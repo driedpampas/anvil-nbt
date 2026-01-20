@@ -1,10 +1,15 @@
 [package]
-name = "mcse-nbt"
-version = "0.1.0"
+name = "anvil-nbt"
+version = "0.1.1"
 edition = "2024"
-description = "A production-grade Rust library for parsing and encoding Minecraft's NBT and Anvil (.mca) formats."
-license = "MIT"
-authors = ["Antigravity"]
+description = "A Rust library for parsing and encoding Minecraft's NBT and Anvil (.mca) formats."
+license = "GPL-3.0-or-later"
+authors = ["driedpampas"]
+repository = "https://github.com/driedpampas/anvil-nbt"
+homepage = "https://github.com/driedpampas/anvil-nbt"
+readme = "README.md"
+keywords = ["minecraft", "nbt", "anvil", "parser", "world"]
+categories = ["parser-implementations", "game-development", "encoding"]
 
 [dependencies]
 nom = "8.0.0"
