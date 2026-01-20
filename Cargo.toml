@@ -1,0 +1,14 @@
+[package]
+name = "mcse-nbt"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nom = "8.0.0"
+flate2 = "1.1.8"
+thiserror = "2.0.17"
+byteorder = "1.5.0"
+memmap2 = "0.9.5"
+indexmap = "2.7.0"
+clap = { version = "4.5.23", features = ["derive"] }
+anyhow = "1.0.95"
