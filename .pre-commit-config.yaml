@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/google/addlicense
+    rev: v1.2.0
+    hooks:
+      - id: addlicense
+        args:
+          - "-c"
+          - "driedpampas@proton.me"
+          - "-l"
+          - "GPL-3.0-or-later"
+          - "-v"
+          - "-s"
+        types: [rust]

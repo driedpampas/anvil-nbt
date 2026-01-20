@@ -1,3 +1,6 @@
+// Copyright 2026 driedpampas@proton.me
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::nbt::NbtTag;
 use crate::nbt::mutf8::encode_mutf8;
 use byteorder::{BigEndian, WriteBytesExt};

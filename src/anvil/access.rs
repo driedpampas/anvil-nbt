@@ -1,3 +1,6 @@
+// Copyright 2026 driedpampas@proton.me
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::anvil::{ChunkLocation, CompressionType, RegionHeader, SECTOR_SIZE};
 use crate::nbt::NbtTag;
 use crate::nbt::parse::parse_named_tag;

@@ -1,3 +1,6 @@
+// Copyright 2026 driedpampas@proton.me
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 //! # mcse-nbt
 //!
 //! A production-grade Rust library for parsing and encoding Minecraft's NBT and Anvil (.mca) formats.

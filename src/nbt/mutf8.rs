@@ -1,3 +1,6 @@
+// Copyright 2026 driedpampas@proton.me
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use std::error::Error;
 use std::fmt;
 
