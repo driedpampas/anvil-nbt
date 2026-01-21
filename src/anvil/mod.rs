@@ -27,13 +27,14 @@ pub struct RegionHeader {
     pub timestamps: [u32; 1024],
 }
 
-/// Supported compression types for chunk data.
+/// Supported compression types for chunk data in Anvil files.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CompressionType {
-    /// Gzip compression (standard for .dat files, less common in .mca).
+    /// Gzip compression (ID: 1). Standard for `.dat` files, less common in `.mca`.
     Gzip = 1,
-    /// Zlib compression (standard for .mca chunks).
+    /// Zlib compression (ID: 2). Standard for `.mca` chunks.
     Zlib = 2,
-    /// No compression.
+    /// No compression (ID: 3).
     None = 3,
 }
 

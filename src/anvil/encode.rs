@@ -23,8 +23,12 @@ impl<W: Write + Seek> RegionWriter<W> {
 
     /// Writes all provided chunks to the region file.
     ///
+    /// Chunks are provided as a slice of tuples containing `(x, z, name, tag)`.
+    /// x and z are world coordinates (chunk units).
+    ///
     /// This method encodes and compresses each chunk using Zlib,
     /// then writes them to the underlying writer along with the required headers.
+    /// It handles sector alignment and padding automatically.
     pub fn write_all_chunks(&mut self, chunks: &[(i32, i32, String, NbtTag)]) -> Result<()> {
         let mut locations = [ChunkLocation {
             offset: 0,
@@ -36,8 +40,8 @@ impl<W: Write + Seek> RegionWriter<W> {
         let mut current_sector = 2u32;
 
         for (x, z, name, tag) in chunks {
-            let rel_x = (x % 32 + 32) % 32;
-            let rel_z = (z % 32 + 32) % 32;
+            let rel_x = x.rem_euclid(32);
+            let rel_z = z.rem_euclid(32);
             let index = (rel_z * 32 + rel_x) as usize;
 
             // Encode and compress chunk
@@ -50,7 +54,7 @@ impl<W: Write + Seek> RegionWriter<W> {
             encoder.finish()?;
 
             let total_len = compressed.len() + 1; // +1 for compression type byte
-            let sectors_needed = (total_len + 4 + SECTOR_SIZE - 1) / SECTOR_SIZE;
+            let sectors_needed = (total_len + 4).div_ceil(SECTOR_SIZE);
 
             locations[index] = ChunkLocation {
                 offset: current_sector,

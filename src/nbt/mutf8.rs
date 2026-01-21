@@ -4,6 +4,7 @@
 use std::error::Error;
 use std::fmt;
 
+/// Error returned when Modified UTF-8 decoding fails.
 #[derive(Debug, Clone)]
 pub struct Mutf8Error(String);
 
@@ -21,32 +22,39 @@ impl Error for Mutf8Error {}
 /// by encoding null characters as two bytes (`0xC0 0x80`) and encoding supplementary characters
 /// as surrogate pairs using 6-byte sequences.
 pub fn decode_mutf8(data: &[u8]) -> Result<String, Mutf8Error> {
-    // Fast path: check if all bytes are ASCII (0x00..0x7F) and not null.
+    // Fast path: check if all bytes are ASCII (0x01..0x7F).
     // Standard UTF-8 and MUTF-8 are identical for ASCII-7 except for null (0x00).
-    // However, MUTF-8 encodes 0 as 0xC0 0x80, but standard UTF-8 can also represent 0 as 0x00.
-    // In NBT, strings are often ASCII.
+    // In NBT, strings are often ASCII and don't contain nulls.
     if data.iter().all(|&b| b > 0 && b < 0x80) {
-        return String::from_utf8(data.to_vec())
-            .map_err(|e| Mutf8Error(format!("Invalid UTF-8 in ASCII path: {}", e)));
+        // SAFETY: We just checked that all bytes are in the range 0x01..0x7F,
+        // which is a valid UTF-8 sequence.
+        return Ok(unsafe { String::from_utf8_unchecked(data.to_vec()) });
     }
 
-    let mut utf16 = Vec::with_capacity(data.len());
+    let mut result = String::with_capacity(data.len());
     let mut i = 0;
 
     while i < data.len() {
         let b = data[i];
-        if b & 0x80 == 0 {
+        if b < 0x80 {
             // 1-byte (includes null handled as 0x00 if present, though MUTF-8 usually uses 0xC0 0x80)
-            utf16.push(b as u16);
+            result.push(b as char);
             i += 1;
         } else if b & 0xE0 == 0xC0 {
-            // 2-byte
+            // 2-byte (includes 0xC0 0x80 for null)
             if i + 1 >= data.len() {
                 return Err(Mutf8Error("Unexpected end of 2-byte sequence".to_string()));
             }
             let b2 = data[i + 1];
-            let val = ((b as u16 & 0x1F) << 6) | (b2 as u16 & 0x3F);
-            utf16.push(val);
+            if b2 & 0xC0 != 0x80 {
+                return Err(Mutf8Error(
+                    "Invalid continuation byte in 2-byte sequence".to_string(),
+                ));
+            }
+            let val = ((b as u32 & 0x1F) << 6) | (b2 as u32 & 0x3F);
+            result.push(
+                char::from_u32(val).ok_or_else(|| Mutf8Error("Invalid character".to_string()))?,
+            );
             i += 2;
         } else if b & 0xF0 == 0xE0 {
             // 3-byte
@@ -55,15 +63,48 @@ pub fn decode_mutf8(data: &[u8]) -> Result<String, Mutf8Error> {
             }
             let b2 = data[i + 1];
             let b3 = data[i + 2];
-            let val = ((b as u16 & 0x0F) << 12) | ((b2 as u16 & 0x3F) << 6) | (b3 as u16 & 0x3F);
-            utf16.push(val);
+            if b2 & 0xC0 != 0x80 || b3 & 0xC0 != 0x80 {
+                return Err(Mutf8Error(
+                    "Invalid continuation byte in 3-byte sequence".to_string(),
+                ));
+            }
+            let val = ((b as u32 & 0x0F) << 12) | ((b2 as u32 & 0x3F) << 6) | (b3 as u32 & 0x3F);
+
+            // Check for surrogate pairs in MUTF-8 (6-byte sequence)
+            // A high surrogate starts with 0xED 0xA0..0xAF
+            if (0xD800..=0xDBFF).contains(&val) && i + 5 < data.len() && data[i + 3] == 0xED {
+                let b4 = data[i + 3]; // 0xED
+                let b5 = data[i + 4];
+                let b6 = data[i + 5];
+                if b5 & 0xF0 == 0xB0 {
+                    // 0xB0..0xBF
+                    let val2 =
+                        ((b4 as u32 & 0x0F) << 12) | ((b5 as u32 & 0x3F) << 6) | (b6 as u32 & 0x3F);
+                    if (0xDC00..=0xDFFF).contains(&val2) {
+                        // It IS a surrogate pair
+                        let high = val - 0xD800;
+                        let low = val2 - 0xDC00;
+                        let codepoint = 0x10000 + ((high << 10) | low);
+                        result.push(
+                            char::from_u32(codepoint)
+                                .ok_or_else(|| Mutf8Error("Invalid surrogate pair".to_string()))?,
+                        );
+                        i += 6;
+                        continue;
+                    }
+                }
+            }
+
+            result.push(
+                char::from_u32(val).ok_or_else(|| Mutf8Error("Invalid character".to_string()))?,
+            );
             i += 3;
         } else {
             return Err(Mutf8Error(format!("Invalid byte 0x{:02X}", b)));
         }
     }
 
-    String::from_utf16(&utf16).map_err(|e| Mutf8Error(e.to_string()))
+    Ok(result)
 }
 
 /// Encodes a standard Rust string into Modified UTF-8 (MUTF-8) bytes.

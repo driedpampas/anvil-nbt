@@ -8,8 +8,7 @@ use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use indexmap::IndexMap;
-use nom::error::Error;
-use std::io::{Cursor, Read, Write};
+use std::io::{Read, Write};
 
 #[test]
 fn test_complex_nbt_round_trip_gzip() {
@@ -58,7 +57,7 @@ fn test_complex_nbt_round_trip_gzip() {
 
     // 4. Decode
     let mut input = &unzipped[..];
-    let (name, decoded) = parse_named_tag::<Error<&[u8]>>(&mut input).expect("Failed to decode");
+    let (name, decoded) = parse_named_tag(&mut input).expect("Failed to decode");
 
     assert_eq!(name, "Level");
     assert_eq!(decoded, root);

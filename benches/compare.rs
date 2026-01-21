@@ -39,10 +39,7 @@ fn bench_read_file(filename: &str, c: &mut Criterion) {
     group.bench_function("anvil_parse", |b| {
         b.iter(|| {
             let mut input = &input[..];
-            black_box(
-                anvil_nbt::nbt::parse::parse_named_tag::<nom::error::Error<&[u8]>>(&mut input)
-                    .unwrap(),
-            );
+            black_box(anvil_nbt::nbt::parse::parse_named_tag(&mut input).unwrap());
         })
     });
 
@@ -157,9 +154,7 @@ fn bench_read_file(filename: &str, c: &mut Criterion) {
         })
     });
 
-    let (name, nbt_anvil) =
-        anvil_nbt::nbt::parse::parse_named_tag::<nom::error::Error<&[u8]>>(&mut &input[..])
-            .unwrap();
+    let (name, nbt_anvil) = anvil_nbt::nbt::parse::parse_named_tag(&mut &input[..]).unwrap();
     group.bench_function("anvil_write", |b| {
         b.iter(|| {
             let mut out = Vec::new();

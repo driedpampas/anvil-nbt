@@ -5,7 +5,6 @@ use anvil_nbt::anvil::access::Region;
 use anvil_nbt::nbt::parse::parse_named_tag;
 use clap::{Parser, Subcommand};
 use flate2::read::GzDecoder;
-use nom::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
@@ -69,8 +68,8 @@ fn run() -> anyhow::Result<()> {
             }
 
             let mut input = &data[..];
-            let (name, tag) = parse_named_tag::<Error<&[u8]>>(&mut input)
-                .map_err(|e| anyhow::anyhow!("Failed to parse NBT: {:?}", e))?;
+            let (name, tag) =
+                parse_named_tag(&mut input).map_err(|_| anyhow::anyhow!("Failed to parse NBT"))?;
             writeln!(handle, "Root tag name: '{}'", name)?;
             writeln!(handle, "{:#?}", tag)?;
         }

@@ -104,8 +104,7 @@ mod tests {
         write_named_tag(&mut buf, "root", &root).unwrap();
 
         let mut input = &buf[..];
-        let (name, decoded) =
-            crate::nbt::parse::parse_named_tag::<nom::error::Error<&[u8]>>(&mut input).unwrap();
+        let (name, decoded) = crate::nbt::parse::parse_named_tag(&mut input).unwrap();
 
         assert_eq!(name, "root");
         assert_eq!(decoded, root);

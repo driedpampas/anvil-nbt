@@ -6,7 +6,6 @@ use crate::nbt::NbtTag;
 use crate::nbt::parse::parse_named_tag;
 use flate2::read::{GzDecoder, ZlibDecoder};
 use memmap2::Mmap;
-use nom::error::Error;
 use std::fs::File;
 use std::io::{Read, Result};
 use std::path::Path;
@@ -40,25 +39,25 @@ impl Region {
         }; 1024];
         let mut timestamps = [0u32; 1024];
 
-        for i in 0..1024 {
+        for (i, location) in locations.iter_mut().enumerate() {
             let start = i * 4;
             let offset = ((mmap[start] as u32) << 16)
                 | ((mmap[start + 1] as u32) << 8)
                 | (mmap[start + 2] as u32);
             let sector_count = mmap[start + 3];
-            locations[i] = ChunkLocation {
+            *location = ChunkLocation {
                 offset,
                 sector_count,
             };
         }
 
-        for i in 0..1024 {
+        for (i, timestamp_slot) in timestamps.iter_mut().enumerate() {
             let start = SECTOR_SIZE + i * 4;
             let timestamp = ((mmap[start] as u32) << 24)
                 | ((mmap[start + 1] as u32) << 16)
                 | ((mmap[start + 2] as u32) << 8)
                 | (mmap[start + 3] as u32);
-            timestamps[i] = timestamp;
+            *timestamp_slot = timestamp;
         }
 
         Ok(Region {
@@ -70,10 +69,18 @@ impl Region {
         })
     }
 
-    /// Retrieves the raw decompressed NBT data for a chunk at the given coordinates.
+    /// Retrieves the raw decompressed NBT data for a chunk at the given world coordinates.
+    ///
+    /// Coordinates are in chunk units (not blocks). For example, (0, 0) is the first chunk
+    /// in the region, and (31, 31) is the last. Coordinates outside the 0-31 range will
+    /// be wrapped using `rem_euclid(32)`.
+    ///
+    /// Returns `Ok(Some(data))` if the chunk exists and was successfully decompressed,
+    /// `Ok(None)` if the chunk is not present in this region file, or an `Err` if
+    /// decompression fails or the file is corrupted.
     pub fn get_chunk_data(&self, x: i32, z: i32) -> Result<Option<Vec<u8>>> {
-        let rel_x = (x % 32 + 32) % 32;
-        let rel_z = (z % 32 + 32) % 32;
+        let rel_x = x.rem_euclid(32);
+        let rel_z = z.rem_euclid(32);
         let index = (rel_z * 32 + rel_x) as usize;
 
         let location = self.header.locations[index];
@@ -115,12 +122,15 @@ impl Region {
         Ok(Some(decoded))
     }
 
-    /// Parses the NBT data for a chunk at the given coordinates.
+    /// Parses the NBT data for a chunk at the given world coordinates.
+    ///
+    /// This is a convenience method that calls [`get_chunk_data`](Self::get_chunk_data)
+    /// and then parses the resulting bytes into an [`NbtTag`].
     pub fn get_chunk_nbt(&self, x: i32, z: i32) -> Result<Option<(String, NbtTag)>> {
         if let Some(data) = self.get_chunk_data(x, z)? {
             let mut input = &data[..];
-            let result = parse_named_tag::<Error<&[u8]>>(&mut input).map_err(|e| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{:?}", e))
+            let result = parse_named_tag(&mut input).map_err(|_| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse NBT")
             })?;
             Ok(Some(result))
         } else {

@@ -9,7 +9,7 @@
 //! Key features include:
 //! - Full NBT support (including Modified UTF-8)
 //! - Lazy-loading Anvil region files with memory mapping
-//! - High-performance parsing using `nom`
+//! - High-performance manual parsing (removed `nom` overhead)
 //! - Idempotent round-trips for both NBT and Anvil data
 
 pub mod anvil;
