@@ -21,13 +21,22 @@ impl Error for Mutf8Error {}
 /// by encoding null characters as two bytes (`0xC0 0x80`) and encoding supplementary characters
 /// as surrogate pairs using 6-byte sequences.
 pub fn decode_mutf8(data: &[u8]) -> Result<String, Mutf8Error> {
-    let mut utf16 = Vec::new();
+    // Fast path: check if all bytes are ASCII (0x00..0x7F) and not null.
+    // Standard UTF-8 and MUTF-8 are identical for ASCII-7 except for null (0x00).
+    // However, MUTF-8 encodes 0 as 0xC0 0x80, but standard UTF-8 can also represent 0 as 0x00.
+    // In NBT, strings are often ASCII.
+    if data.iter().all(|&b| b > 0 && b < 0x80) {
+        return String::from_utf8(data.to_vec())
+            .map_err(|e| Mutf8Error(format!("Invalid UTF-8 in ASCII path: {}", e)));
+    }
+
+    let mut utf16 = Vec::with_capacity(data.len());
     let mut i = 0;
 
     while i < data.len() {
         let b = data[i];
         if b & 0x80 == 0 {
-            // 1-byte
+            // 1-byte (includes null handled as 0x00 if present, though MUTF-8 usually uses 0xC0 0x80)
             utf16.push(b as u16);
             i += 1;
         } else if b & 0xE0 == 0xC0 {

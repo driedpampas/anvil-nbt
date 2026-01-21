@@ -106,22 +106,24 @@ where
         11 => {
             let (i, len) = be_i32(*input).map_err(unwrap_err)?;
             *input = i;
+            let byte_len = len as usize * 4;
+            let (remaining, bytes) = take(byte_len)(*input).map_err(unwrap_err)?;
+            *input = remaining;
             let mut ints = Vec::with_capacity(len as usize);
-            for _ in 0..len {
-                let (i, v) = be_i32(*input).map_err(unwrap_err)?;
-                *input = i;
-                ints.push(v);
+            for chunk in bytes.chunks_exact(4) {
+                ints.push(i32::from_be_bytes(chunk.try_into().unwrap()));
             }
             Ok(NbtTag::IntArray(ints))
         }
         12 => {
             let (i, len) = be_i32(*input).map_err(unwrap_err)?;
             *input = i;
+            let byte_len = len as usize * 8;
+            let (remaining, bytes) = take(byte_len)(*input).map_err(unwrap_err)?;
+            *input = remaining;
             let mut longs = Vec::with_capacity(len as usize);
-            for _ in 0..len {
-                let (i, v) = be_i64(*input).map_err(unwrap_err)?;
-                *input = i;
-                longs.push(v);
+            for chunk in bytes.chunks_exact(8) {
+                longs.push(i64::from_be_bytes(chunk.try_into().unwrap()));
             }
             Ok(NbtTag::LongArray(longs))
         }
