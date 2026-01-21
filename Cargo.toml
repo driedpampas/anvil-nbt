@@ -20,3 +20,21 @@ memmap2 = "0.9.5"
 indexmap = "2.7.0"
 clap = { version = "4.5.23", features = ["derive"] }
 anyhow = "1.0.95"
+
+[dev-dependencies]
+criterion = "0.5.1"
+flate2 = "1.1.8"
+mimalloc = "0.1.43"
+# simdnbt = "0.5.0" (Requires nightly)
+shen-nbt5 = "0.4.6"
+# azalea-nbt = "0.8.0" (Requires nightly)
+graphite_binary = "0.1.0"
+valence_nbt = { version = "0.8.0", features = ["binary"] }
+fastnbt = "2.5.0"
+nbt = { package = "hematite-nbt", version = "0.5.2" }
+crab_nbt = "0.1.0"
+ussr-nbt = "0.2.1"
+
+[[bench]]
+name = "compare"
+harness = false
