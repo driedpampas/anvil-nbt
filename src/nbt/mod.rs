@@ -6,8 +6,13 @@
 pub mod encode;
 pub mod mutf8;
 pub mod parse;
+#[cfg(feature = "serde")]
+#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
+pub mod serde_impl;
 
 use indexmap::IndexMap;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /// Represents a Minecraft NBT (Named Binary Tag).
 ///
@@ -22,6 +27,8 @@ use indexmap::IndexMap;
 /// assert_eq!(tag.get_type_id(), 3);
 /// ```
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum NbtTag {
     /// Marker tag used to signify the end of a `Compound` tag. (ID: 0)
     End,

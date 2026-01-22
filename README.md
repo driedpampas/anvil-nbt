@@ -9,9 +9,10 @@ Built for world editors, servers, and tools that need reliable access to Minecra
 
 ## Features
 
-- **High Performance**: Built on `nom` with trait-based parsers for efficient parsing
+- **High Performance**: Manual byte-level parsing for maximum speed (no parser combinator overhead)
 - **Lazy Loading**: Memory-mapped Anvil region files via `memmap2` load only the chunks you need
 - **Full NBT Support**: Handles all tag types, including Modified UTF-8 (MUTF-8) strings
+- **Optional Serde Support**: Serialize/Deserialize Rust structs directly to/from NBT via the `serde` feature
 - **Bit-Perfect Round-trips**: Idempotent parsers and encoders preserve data exactly
 - **Compression Support**: Built-in Gzip and Zlib compression handling via `flate2`
 - **CLI Utility**: Includes `mc-inspect` for inspecting world files from the terminal
@@ -65,6 +66,41 @@ fn main() -> anyhow::Result<()> {
         // Do something with the NBT data!
     }
     
+    Ok(())
+}
+```
+
+### Serde Support (Optional)
+
+Enable the `serde` feature to serialize and deserialize Rust structs:
+
+```toml
+anvil-nbt = { version = "0.1.2", features = ["serde"] }
+```
+
+```rust
+use anvil_nbt::nbt::serde_impl::{to_nbt, from_nbt};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+struct PlayerData {
+    name: String,
+    health: f32,
+    inventory: Vec<String>,
+}
+
+fn main() -> anyhow::Result<()> {
+    let player = PlayerData {
+        name: "Steve".to_owned(),
+        health: 20.0,
+        inventory: vec!["Sword".to_owned(), "Bread".to_owned()],
+    };
+
+    // Convert to NbtTag
+    let tag = to_nbt(&player)?;
+    
+    // Convert back to struct
+    let decoded: PlayerData = from_nbt(tag)?;
     Ok(())
 }
 ```

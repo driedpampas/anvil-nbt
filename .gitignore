@@ -2,3 +2,4 @@ target/
 .world/
 **/*.log
 .local/
+**/*.local

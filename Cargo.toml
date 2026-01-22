@@ -1,6 +1,6 @@
 [package]
 name = "anvil-nbt"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2024"
 description = "A Rust library for parsing and encoding Minecraft's NBT and Anvil (.mca) formats."
 license = "GPL-3.0-or-later"
@@ -11,16 +11,26 @@ readme = "README.md"
 keywords = ["minecraft", "nbt", "anvil", "parser", "world"]
 categories = ["parser-implementations", "game-development", "encoding"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 flate2 = "1.1.8"
-thiserror = "2.0.17"
+thiserror = "2"
 byteorder = "1.5.0"
-memmap2 = "0.9.5"
-indexmap = "2.7.0"
+memmap2 = "0.9"
+indexmap = { version = "2.7.0", features = ["std"] }
+serde = { version = "1.0", features = ["derive"], optional = true }
 clap = { version = "4.5.23", features = ["derive"] }
 anyhow = "1.0.95"
 
+[features]
+default = []
+serde = ["dep:serde", "indexmap/serde"]
+
 [dev-dependencies]
+serde_json = "1.0"
 criterion = "0.8.1"
 flate2 = "1.1.8"
 mimalloc = "0.1.43"
